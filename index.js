@@ -11,11 +11,26 @@ app.use(cors());
 app.use(express.json());
 
 //? database connection
-const uri = "mongodb+srv://MoinKhan:<password>@doctors-portal.ax38y.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@doctors-portal.ax38y.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-//? listening to port
+//? server stablish
+const server = async () => {
+    try {
+        client.connect();
+        const database = client.db('doctors-portal');
+        const bookingCollection = database.collection('bookings');
+        console.log('database connected')
+    }
 
+    finally {
+        client.close();
+    }
+}
+
+server().catch(console.dir)
+
+//? listening to port
 app.get('/', (req, res) => {
     res.send("Server is running")
 })
