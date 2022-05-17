@@ -18,13 +18,20 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 const server = async () => {
     try {
         client.connect();
-        const database = client.db('doctors-portal');
-        const bookingCollection = database.collection('bookings');
-        console.log('database connected')
+        const database = client.db('doctors_portal');
+        const appointmentCollection = database.collection('appointments');
+
+        //? get all appointment
+        app.get('/appointment', async (req, res) => {
+            const query = {};
+            const cursor = appointmentCollection.find(query);
+            const appointments = await cursor.toArray();
+            res.send(appointments);
+        })
     }
 
     finally {
-        client.close();
+        //// client.close();
     }
 }
 
@@ -36,5 +43,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log("port is listening to", port);
+    console.log("listening to port", port);
 })
