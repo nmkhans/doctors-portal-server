@@ -33,13 +33,36 @@ const server = async () => {
         //? book an appointment
         app.post('/booking', async (req, res) => {
             const booking = req.body;
-            const query = {treatment: booking.treatment, date: booking.date, patientEmail: booking.patientEmail};
+            console.log(booking)
+            const query = {treatment: booking.treatment, date: booking.date, patientEmail: booking.patientEmail, slot: booking.slot};
             const exist = await bookingCollection.findOne(query);
             if(exist) {
                 return res.send({success: false, booking: exist})
             }
             const result = await bookingCollection.insertOne(booking);
             res.send({success: true, booking: result});
+        })
+
+        //? get available slots
+        app.get('/available-slots', async (req, res) => {
+            const date = req.query.date;
+
+            //? get all appointments
+            const appointments = await appointmentCollection.find().toArray();
+            
+            //? get appointment by date
+            const query = {date: date};
+            const booking = await bookingCollection.find(query).toArray();
+
+            //? for each appointment find the booking
+            appointments.forEach(appoint => {
+                const appointmentBookings = booking.filter(book => book.treatment === appoint.name);
+                const booked = appointmentBookings.map(book => book.slot);
+                const available = appoint.slots.filter(slot => !booked.includes(slot));
+                appoint.slots = available;
+            })
+
+            res.send(appointments)
         })
     }
 
