@@ -33,8 +33,7 @@ const server = async () => {
         //? book an appointment
         app.post('/booking', async (req, res) => {
             const booking = req.body;
-            console.log(booking)
-            const query = {treatment: booking.treatment, date: booking.date, patientEmail: booking.patientEmail, slot: booking.slot};
+            const query = {treatment: booking.treatment, date: booking.date, patientEmail: booking.patientEmail};
             const exist = await bookingCollection.findOne(query);
             if(exist) {
                 return res.send({success: false, booking: exist})
