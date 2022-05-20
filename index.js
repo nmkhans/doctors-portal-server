@@ -20,6 +20,7 @@ const server = async () => {
         client.connect();
         const database = client.db('doctors_portal');
         const appointmentCollection = database.collection('appointments');
+        const bookingCollection = database.collection('bookings');
 
         //? get all appointment
         app.get('/appointment', async (req, res) => {
@@ -27,6 +28,18 @@ const server = async () => {
             const cursor = appointmentCollection.find(query);
             const appointments = await cursor.toArray();
             res.send(appointments);
+        })
+
+        //? book an appointment
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+            const query = {treatment: booking.treatment, date: booking.date, patientEmail: booking.patientEmail};
+            const exist = await bookingCollection.findOne(query);
+            if(exist) {
+                return res.send({success: false, booking: exist})
+            }
+            const result = await bookingCollection.insertOne(booking);
+            res.send({success: true, booking: result});
         })
     }
 
