@@ -66,7 +66,11 @@ const server = async () => {
 
         //? get booked appointment for users
         app.get('/booking', async (req, res) => {
-            
+            const email = req.query.email;
+            const query = {patientEmail: email};
+            const cursor = bookingCollection.find(query);
+            const booked = await cursor.toArray();
+            res.send(booked);
         })
     }
 
