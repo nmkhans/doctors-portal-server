@@ -63,6 +63,11 @@ const server = async () => {
 
             res.send(appointments)
         })
+
+        //? get booked appointment for users
+        app.get('/booking', async (req, res) => {
+            
+        })
     }
 
     finally {
