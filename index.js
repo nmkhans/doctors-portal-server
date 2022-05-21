@@ -53,9 +53,12 @@ const server = async () => {
         })
 
         //? get all users 
-        app.get('/users'), async (res, res) => {
-            
-        }
+        app.get('/users', async (req, res) => {
+            const query = {};
+            const cursor = userCollection.find(query);
+            const result = cursor.toArray();
+            res.send(result)
+        })
 
         //? get all appointment
         app.get('/appointment', async (req, res) => {
