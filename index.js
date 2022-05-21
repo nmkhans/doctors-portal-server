@@ -38,6 +38,7 @@ const server = async () => {
         const bookingCollection = database.collection('bookings');
         const userCollection = database.collection('users');
 
+        //? register users
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -50,6 +51,11 @@ const server = async () => {
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, { expiresIn: "1h" });
             res.send({ result, token: token });
         })
+
+        //? get all users 
+        app.get('/users'), async (res, res) => {
+            
+        }
 
         //? get all appointment
         app.get('/appointment', async (req, res) => {
