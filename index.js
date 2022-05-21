@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
@@ -26,13 +27,14 @@ const server = async () => {
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
-            const filter = {email: email};
-            const option = {upsert: true};
+            const filter = { email: email };
+            const option = { upsert: true };
             const updateDoc = {
                 $set: user,
             }
             const result = await userCollection.updateOne(filter, updateDoc, option);
-            res.send(user);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, { expiresIn: "1h" });
+            res.send({ result, token: token });
         })
 
         //? get all appointment
@@ -46,13 +48,13 @@ const server = async () => {
         //? book an appointment
         app.post('/booking', async (req, res) => {
             const booking = req.body;
-            const query = {treatment: booking.treatment, date: booking.date, patientEmail: booking.patientEmail};
+            const query = { treatment: booking.treatment, date: booking.date, patientEmail: booking.patientEmail };
             const exist = await bookingCollection.findOne(query);
-            if(exist) {
-                return res.send({success: false, booking: exist})
+            if (exist) {
+                return res.send({ success: false, booking: exist })
             }
             const result = await bookingCollection.insertOne(booking);
-            res.send({success: true, booking: result});
+            res.send({ success: true, booking: result });
         })
 
         //? get available slots
@@ -61,9 +63,9 @@ const server = async () => {
 
             //? get all appointments
             const appointments = await appointmentCollection.find().toArray();
-            
+
             //? get appointment by date
-            const query = {date: date};
+            const query = { date: date };
             const booking = await bookingCollection.find(query).toArray();
 
             //? for each appointment find the booking
@@ -80,7 +82,7 @@ const server = async () => {
         //? get booked appointment for users
         app.get('/booking', async (req, res) => {
             const email = req.query.email;
-            const query = {patientEmail: email};
+            const query = { patientEmail: email };
             const cursor = bookingCollection.find(query);
             const booked = await cursor.toArray();
             res.send(booked);
