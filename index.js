@@ -12,13 +12,13 @@ app.use(cors());
 app.use(express.json());
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
-    if(!authHeader) {
-        return res.status(401).send({message: 'Unauthorized Access!'});
+    if (!authHeader) {
+        return res.status(401).send({ message: 'Unauthorized Access!' });
     }
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
-        if(error) {
-            return res.status(403).send({message: "Access Forbidden!"})
+        if (error) {
+            return res.status(403).send({ message: "Access Forbidden!" })
         }
         req.decoded = decoded;
         next();
@@ -96,10 +96,15 @@ const server = async () => {
         //? get booked appointment for users
         app.get('/booking', verifyToken, async (req, res) => {
             const email = req.query.email;
-            const query = { patientEmail: email };
-            const cursor = bookingCollection.find(query);
-            const booked = await cursor.toArray();
-            res.send(booked);
+            const decodedEmail = req.decoded.email;
+            if (decodedEmail === email) {
+                const query = { patientEmail: email };
+                const cursor = bookingCollection.find(query);
+                const booked = await cursor.toArray();
+                return res.send(booked);
+            } else {
+                return res.status(403).send({message: "Fodbidden Access!"});
+            }
         })
     }
 
