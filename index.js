@@ -24,7 +24,15 @@ const server = async () => {
         const userCollection = database.collection('users');
 
         app.put('/user/:email', async (req, res) => {
-            
+            const email = req.params.email;
+            const user = req.body;
+            const filter = {email: email};
+            const option = {upsert: true};
+            const updateDoc = {
+                $set: user,
+            }
+            const result = await userCollection.updateOne(filter, updateDoc, option);
+            res.send(user);
         })
 
         //? get all appointment
