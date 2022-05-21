@@ -53,11 +53,11 @@ const server = async () => {
         })
 
         //? get all users 
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, async (req, res) => {
             const query = {};
             const cursor = userCollection.find(query);
-            const result = cursor.toArray();
-            res.send(result)
+            const result = await cursor.toArray();
+            return res.send(result)
         })
 
         //? get all appointment
@@ -112,7 +112,7 @@ const server = async () => {
                 const booked = await cursor.toArray();
                 return res.send(booked);
             } else {
-                return res.status(403).send({message: "Fodbidden Access!"});
+                return res.status(403).send({ message: "Fodbidden Access!" });
             }
         })
     }
