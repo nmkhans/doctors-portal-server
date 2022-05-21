@@ -21,6 +21,7 @@ const server = async () => {
         const database = client.db('doctors_portal');
         const appointmentCollection = database.collection('appointments');
         const bookingCollection = database.collection('bookings');
+        const userCollection = database.collection('users');
 
         //? get all appointment
         app.get('/appointment', async (req, res) => {
