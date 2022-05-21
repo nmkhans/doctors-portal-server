@@ -23,6 +23,10 @@ const server = async () => {
         const bookingCollection = database.collection('bookings');
         const userCollection = database.collection('users');
 
+        app.put('/user/:email', async (req, res) => {
+            
+        })
+
         //? get all appointment
         app.get('/appointment', async (req, res) => {
             const query = {};
