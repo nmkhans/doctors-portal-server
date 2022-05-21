@@ -10,6 +10,20 @@ const app = express();
 //? middle were
 app.use(cors());
 app.use(express.json());
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if(!authHeader) {
+        return res.status(401).send({message: 'Unauthorized Access!'});
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
+        if(error) {
+            return res.status(403).send({message: "Access Forbidden!"})
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 
 //? database connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@doctors-portal.ax38y.mongodb.net/?retryWrites=true&w=majority`;
@@ -80,7 +94,7 @@ const server = async () => {
         })
 
         //? get booked appointment for users
-        app.get('/booking', async (req, res) => {
+        app.get('/booking', verifyToken, async (req, res) => {
             const email = req.query.email;
             const query = { patientEmail: email };
             const cursor = bookingCollection.find(query);
