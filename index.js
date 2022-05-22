@@ -53,16 +53,30 @@ const server = async () => {
         })
 
         //? register admin
-        app.put('/user/admin/:email', async (req, res) => {
+        app.put('/user/admin/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            const filter = { email: email };
-            const updateDoc = {
-                $set: {
-                    role: 'admin'
-                },
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: {
+                        role: 'admin'
+                    },
+                }
+                const result = await userCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            } else {
+                res.status(403).send({message: "Forbidden Access"})
             }
-            const result = await userCollection.updateOne(filter, updateDoc);
-            res.send(result);
+        })
+
+        //? verify admin
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({email: email});
+            const isAdmin = user.role === 'admin';
+            res.send({admin: isAdmin});
         })
 
         //? get all users 
@@ -76,7 +90,7 @@ const server = async () => {
         //? get all appointment
         app.get('/appointment', async (req, res) => {
             const query = {};
-            const cursor = appointmentCollection.find(query);
+            const cursor = appointmentCollection.find(query).project({name: 1});
             const appointments = await cursor.toArray();
             res.send(appointments);
         })
