@@ -37,6 +37,7 @@ const server = async () => {
         const appointmentCollection = database.collection('appointments');
         const bookingCollection = database.collection('bookings');
         const userCollection = database.collection('users');
+        const doctorCollection = database.collection('doctors');
 
         //? register users
         app.put('/user/:email', async (req, res) => {
@@ -141,6 +142,12 @@ const server = async () => {
             } else {
                 return res.status(403).send({ message: "Fodbidden Access!" });
             }
+        })
+
+        app.post('/doctor', async (req, res) => {
+            const doctor = req.body;
+            const result = await doctorCollection.inserOne(doctor);
+            res.send(result);
         })
     }
 
