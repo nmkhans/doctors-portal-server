@@ -1,8 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const stripe = require('stripe')('sk_test_51L2T8gA0AzwDwvLY5t7FXuaJREv5SWmryh27sxvswxWmmEouUF8ha3WRiijAxZhe2v2iiPUTjcswxC5OmTgfB4bn00vHpJiakM');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+require('dotenv').config();
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -159,11 +160,25 @@ const server = async () => {
             res.send(result);
         })
 
-        app.get('/appointment/:id', async (req, res) => {
+        app.get('/booking/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)};
+            const query = { _id: ObjectId(id) };
             const appointment = await bookingCollection.findOne(query);
             res.send(appointment)
+        })
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const service = req.body;
+            const price = service.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            })
         })
     }
 
