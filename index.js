@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -39,6 +39,16 @@ const server = async () => {
         const userCollection = database.collection('users');
         const doctorCollection = database.collection('doctors');
 
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                next();
+            } else {
+                res.status(403).send({ message: "Forbidden Access" })
+            }
+        }
+
         //? register users
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -54,30 +64,24 @@ const server = async () => {
         })
 
         //? register admin
-        app.put('/user/admin/:email', verifyToken, async (req, res) => {
+        app.put('/user/admin/:email', verifyToken, verifyAdmin, async (req, res) => {
             const email = req.params.email;
-            const requester = req.decoded.email;
-            const requesterAccount = await userCollection.findOne({ email: requester });
-            if (requesterAccount.role === 'admin') {
-                const filter = { email: email };
-                const updateDoc = {
-                    $set: {
-                        role: 'admin'
-                    },
-                }
-                const result = await userCollection.updateOne(filter, updateDoc);
-                res.send(result);
-            } else {
-                res.status(403).send({message: "Forbidden Access"})
+            const filter = { email: email };
+            const updateDoc = {
+                $set: {
+                    role: 'admin'
+                },
             }
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
         })
 
         //? verify admin
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
-            const user = await userCollection.findOne({email: email});
+            const user = await userCollection.findOne({ email: email });
             const isAdmin = user.role === 'admin';
-            res.send({admin: isAdmin});
+            res.send({ admin: isAdmin });
         })
 
         //? get all users 
@@ -91,7 +95,7 @@ const server = async () => {
         //? get all appointment
         app.get('/appointment', async (req, res) => {
             const query = {};
-            const cursor = appointmentCollection.find(query).project({name: 1});
+            const cursor = appointmentCollection.find(query).project({ name: 1 });
             const appointments = await cursor.toArray();
             res.send(appointments);
         })
@@ -144,10 +148,22 @@ const server = async () => {
             }
         })
 
-        app.post('/doctor', async (req, res) => {
+        app.post('/doctor', verifyAdmin, async (req, res) => {
             const doctor = req.body;
-            const result = await doctorCollection.inserOne(doctor);
+            const result = await doctorCollection.insertOne(doctor);
             res.send(result);
+        })
+
+        app.get('/doctor', async (req, res) => {
+            const result = await doctorCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/appointment/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const appointment = await bookingCollection.findOne(query);
+            res.send(appointment)
         })
     }
 
